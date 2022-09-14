@@ -47,19 +47,19 @@ Segment.prototype.downloadSegment =  function(){
 }
 
 class Downloader{
-	constructor(url,preview=false){
+	constructor(url,playerEl=false){
 		this.url = url;
-		this.enablePreview = preview
+		this.playerEl = playerEl;
+		this.seg_size = 1024*500 // segment size
+		this.parallel_segments = 20 // parallel tcp connections
 		this.fsize = 0;
-		this.seg_size = 1024*500
 		this.segs_total = 0;
-		this.segs_downloaded = [];
-		this.parallel_segments = 15;
-		this.cursor = {start:0, end:-1};
 		this.segs_created=0;
-		this.bloby = new Blob();
+		this.segs_downloaded = [];
 		this.segs_joined = 0;
 		this.segs_previewed = 0;
+		this.loaded_segs_body = new Blob();
+		this.cursor = {start:0, end:-1};
 	}
 	getSize(){
 		return fetch(this.url,{method:"head"}).then(resp=>{
@@ -85,7 +85,7 @@ class Downloader{
 				}
 			}
 			else{
-				console.log("No content-length found.")
+				console.log("No content-length found.") // source doesn't support multiple tcp connections
 			}
 		})
 	}
@@ -112,44 +112,29 @@ class Downloader{
 	downloadComplete(){ 
 		console.log("download finish");
 		let spl = this.url.split("/") 
-		downloadBlob(this.bloby, spl[spl.length-1].split("?")[0])
+		downloadBlob(this.loaded_segs_body, spl[spl.length-1].split("?")[0])
 	}
 
 	joinSegs(){
-		let oj = this.segs_joined;
 		this.segs_downloaded.forEach(seg=>{
 			if(seg.id - this.segs_joined == 1){
-				this.bloby = new Blob([this.bloby, seg.req.response])
+				this.loaded_segs_body = new Blob([this.loaded_segs_body, seg.req.response])
 				this.segs_joined++;
 			}
 		});
-		if(oj != this.segs_joined && this.enablePreview && (this.segs_joined - this.segs_previewed >= this.parallel_segments)){
+		if(this.playerEl && (this.segs_joined - this.segs_previewed >= this.parallel_segments)){
 			console.log("previewing segs: ", this.segs_joined)
 			this.segs_previewed = this.segs_joined;
 			this.preview();
 		}
 	}
 
-	preview(){
-		let vd = document.querySelector("video");
-		if(vd){
-			let curr = vd.currentTime
-			if(vd.src.indexOf("blob")){
-				URL.revokeObjectURL(vd.src);
-			}
-			vd.src = URL.createObjectURL(this.bloby);
-			vd.currentTime = curr;
-			//vd.play();
+	preview(){ // play loaded segments
+		let curr = vd.currentTime
+		if(vd.src.indexOf("blob")){
+			URL.revokeObjectURL(vd.src);
 		}
+		vd.src = URL.createObjectURL(this.loaded_segs_body);
+		vd.currentTime = curr;
 	}
-
 }
-
- vd = document.createElement("video");
-vd.controls=true;
-vd.autoplay=true;
-document.body.prepend(vd);
-
-
-dl = new Downloader("https://vdownload-44.sb-cd.com/1/2/12133213-480p.mp4?secure=yBLBrDgXtfPIm-ysp34YFw,1663054124&m=44&d=1&_tid=12133213", true);
-dl.startDownload();
