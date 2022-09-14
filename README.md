@@ -20,7 +20,7 @@ const playerEl = document.querySelector("#video-player");
 const parallel_segments = 10;
 const url = "https://example.com/play.mp4";
 const dl = new Downloader(url, playerEl, parallel_segments);
-const dl.startDownload();
+dl.startDownload();
 ```
 
 # Important
