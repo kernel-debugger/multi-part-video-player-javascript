@@ -130,6 +130,7 @@ class Downloader{
 	}
 
 	preview(){ // play loaded segments
+		let vd = this.playerEl
 		let curr = vd.currentTime
 		if(vd.src.indexOf("blob")){
 			URL.revokeObjectURL(vd.src);
