@@ -47,11 +47,11 @@ Segment.prototype.downloadSegment =  function(){
 }
 
 class Downloader{
-	constructor(url,playerEl=false){
+	constructor(url,playerEl=false, parallel_segments=10){
 		this.url = url;
 		this.playerEl = playerEl;
 		this.seg_size = 1024*500 // segment size
-		this.parallel_segments = 20 // parallel tcp connections
+		this.parallel_segments = parallel_segments // parallel tcp connections
 		this.fsize = 0;
 		this.segs_total = 0;
 		this.segs_created=0;
