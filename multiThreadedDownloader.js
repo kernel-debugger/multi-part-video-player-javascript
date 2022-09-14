@@ -18,7 +18,7 @@ class Segment{
 		this.id = id;
 		this.dwnldr = dwnldr
 		this.req = new XMLHttpRequest();
-		this.req.timeout = 60000
+		this.req.timeout = 100000 ; //timeout in 100secs and retry
 		this.req.open("GET", url);
 		this.req.setRequestHeader("Range", "bytes="+start+"-"+end);
 		this.req.responseType = "blob";
